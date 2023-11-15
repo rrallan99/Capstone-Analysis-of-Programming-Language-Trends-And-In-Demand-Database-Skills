@@ -1,0 +1,27 @@
+#csv is already loaded into df
+#identify and remove duplicates, double check at end 
+duplicate=df[df.duplicated()]
+duplicate
+df=df.drop_duplicates()
+duplicate=df[df.duplicated()]
+duplicate
+
+#identify missing values for each column
+null_count=df.isnull().sum()
+null_count
+#just an example, replace empty in work location with majority value
+df['WorkLoc'].isnull().sum()
+df['WorkLoc'].value_counts()
+#majority value for Work Location is 'Office'
+df['WorkLoc']=df['WorkLoc'].fillna('Office')
+#double check it worked
+df['WorkLoc'].isnull().sum()
+
+#this data set has columns for frequency of compensation and compensation per pay period, making it hard to compare how much each person actually make
+#so here we will normalize that to make it a consistent pay for the whole year.
+df['CompFreq'].value_counts()
+df['CompFreq'].replace(to_replace='Yearly',value=1,inplace=True)
+df['CompFreq'].replace(to_replace='Monthly',value=12,inplace=True)
+df['CompFreq'].replace(to_replace='Weekly',value=52,inplace=True)
+df['NormalizedAnnualCompensation'] = df['CompTotal'] * df['CompFreq']
+df['NormalizedAnnualCompensation']
