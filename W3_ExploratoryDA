@@ -1,0 +1,68 @@
+#import libraries
+import pandas as pd
+import seaborn as sns
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+
+#load data set
+df = pd.read_csv("https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-DA0321EN-SkillsNetwork/LargeData/m2_survey_data.csv")
+
+#ConvertedComp column shows annual salary converted to USD, show historgram and distribution for ConvertedComp
+sns.distplot (df['ConvertedComp'], hist=False)
+
+count, bin_edges = np.histogram(df['ConvertedComp'].dropna())
+df['ConvertedComp'].plot(kind='hist', figsize=(10,7), xticks=bin_edges)
+plt.title('Histogram of Salary Converted to Annual USD Salary')
+plt.show
+
+#median salary
+df['ConvertedComp'].median()
+#gender counts
+df['Gender'].value_counts()
+#identify median salary by gender
+df.groupby(["Gender"], as_index=False)["ConvertedComp"].median()
+#summary of Age column
+df['Age'].describe()
+#age histogram
+count, bin_edges = np.histogram(df['Age'].dropna())
+df['Age'].plot(kind='hist', bins=20, xticks=bin_edges)
+
+#identify and remove outliers
+#first visually show outliers with box plot
+df['ConvertedComp'].plot(kind='box', figsize=(15,10))
+
+#find interquartile range
+Q1 = df['ConvertedComp'].quantile(0.25)
+Q3 = df['ConvertedComp'].quantile(0.75)
+IQR = Q3 - Q1
+IQR
+
+#find upper and lower bounds
+UB = df['ConvertedComp'].max()
+LB = df['ConvertedComp'].min()
+print (UB)
+print (LB)
+
+#identify how many outliers there are
+outliers = (df["ConvertedComp"] < (Q1 - 1.5 * IQR)) | (df["ConvertedComp"] > (Q3 + 1.5 * IQR))
+print('Number of outliers is', outliers.sum())
+
+#this won't be run but it can check how many above and below
+#less = (df["ConvertedComp"] < (Q1 - 1.5 * IQR))
+#less.value_counts()
+#more = (df["ConvertedComp"] > (Q3 + 1.5 * IQR))
+#more.value_counts()
+
+# create a new data frame without outliers
+df_NoOutliers = df[~(df["ConvertedComp"] > (Q3 + 1.5 * IQR))]
+df_NoOutliers.head()
+df_NoOutliers['ConvertedComp'].describe()
+
+#find correlation between numerical categories
+df.corr()
+
+
+
+
+
