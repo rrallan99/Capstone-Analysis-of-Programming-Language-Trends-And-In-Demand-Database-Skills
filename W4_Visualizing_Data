@@ -1,0 +1,177 @@
+#Download Database File
+!wget https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-DA0321EN-SkillsNetwork/LargeData/m4_survey_data.sqlite
+#connect to database
+import sqlite3
+conn = sqlite3.connect("m4_survey_data.sqlite") # open a database connection
+#import libraries
+import pandas as pd
+import seaborn as sns
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+
+#Plot a Histogram of ConvertedComp
+QUERY = """
+SELECT ConvertedComp
+FROM master
+"""
+df = pd.read_sql_query(QUERY,conn)
+df.head()
+df['ConvertedComp'].plot(kind='hist')
+plt.show()
+
+#Plot a boxplot of Age
+QUERY = """
+SELECT Age
+FROM master
+"""
+df = pd.read_sql_query(QUERY,conn)
+df.head()
+sns.boxplot(df)
+plt.show()
+
+#Create a Scatterplot of Age and WorkWeekHrs
+QUERY = """
+SELECT Age, WorkWeekHrs
+FROM master
+"""
+df = pd.read_sql_query(QUERY,conn)
+sns.scatterplot(x="Age", y="WorkWeekHrs", data=df)
+plt.ylim(0,200)
+plt.xlim(0,80)
+plt.show()
+
+#Create a BubblePlot of WorkWeekHrs and CodeRevHrs with Age as bubblesize
+QUERY = """
+SELECT Age, WorkWeekHrs, CodeRevHrs
+FROM master
+"""
+df = pd.read_sql_query(QUERY,conn)
+sns.scatterplot(data=df, x='WorkWeekHrs', y='CodeRevHrs', size='Age', color='red', sizes=(5,200))
+plt.title('Age Bubbles on Code Revision Hours and Work Week Hours')
+plt.xlabel('WorkWeekHrs')
+plt.ylabel('CodeRevHrs')
+plt.xlim(0,150)
+plt.show
+
+#Pie Chart of top 5 Databases Respondents with to learn next year
+QUERY = """
+SELECT DatabaseDesireNextYear, count(DatabaseDesireNextYear) as Count
+FROM DatabaseDesireNextYear
+GROUP BY DatabaseDesireNextYear
+"""
+df = pd.read_sql_query(QUERY,conn)
+df.sort_values('Count', ascending=False,inplace=True)
+df=df.head(5)
+df['Count'].plot(kind='pie',autopct='%1.1f%%', startangle=90,labels=df['DatabaseDesireNextYear'])
+plt.title('Top 5 databases that respondents wish to learn next year')
+plt.show()
+
+#Pie Chart of top 5 Languages Respondents wish to learn next year
+QUERY = """
+SELECT LanguageDesireNextYear, count(LanguageDesireNextYear) as Count
+FROM LanguageDesireNextYear
+GROUP BY LanguageDesireNextYear
+"""
+df = pd.read_sql_query(QUERY,conn)
+df.sort_values('Count', ascending=False,inplace=True)
+df = df.head(5)
+df['Count'].plot(kind='pie',autopct='%1.1f%%', startangle=90,labels=df['LanguageDesireNextYear'])
+plt.title('Top 5 languages that respondents wish to learn next year')
+plt.show()
+
+#Show with Languages and Databases were the most popular, and how many respondents only worked with MySQL
+QUERY = """
+SELECT LanguageWorkedWith, count(LanguageWorkedWith) as Count
+FROM LanguageWorkedWith
+GROUP BY LanguageWorkedWith
+"""
+df = pd.read_sql_query(QUERY,conn)
+df.sort_values('Count', ascending=False,inplace=True)
+print(df.head(5))
+
+QUERY = """
+SELECT Respondent, DatabaseWorkedWith, Count(*) AS Count
+FROM DatabaseWorkedWith
+GROUP BY Respondent
+HAVING Count = 1 
+   AND DatabaseWorkedWith = 'MySQL'
+"""
+df = pd.read_sql_query(QUERY,conn)
+print(df.head())
+print('The number of respondents who said they only work with MySQL is', df.shape[0])
+
+#Create a Stacked Chart that shows WorkWeekHrs, CodeRevHrs for Age Group 30 to 35
+QUERY = """
+SELECT WorkWeekHrs, CodeRevHrs, Age
+FROM master
+"""
+df_age = pd.read_sql_query(QUERY,conn) 
+df_age = df_age.groupby('Age', axis=0).median()
+df_age[30:35].plot(kind='bar', figsize=(10, 6), stacked=True)
+plt.xlabel('Age') # add to x-label to the plot
+plt.ylabel('Hours') # add y-label to the plot
+plt.title('Median Hours by Age') # add title to the plot
+plt.show()
+
+#Plot Median ConvertedComp for Ages 45 to 60
+QUERY = """
+SELECT ConvertedComp, Age
+FROM master
+"""
+df_comp = pd.read_sql_query(QUERY,conn) 
+# group respondents by age and apply median() function 
+df_comp = df_comp.groupby('Age', axis=0).median()
+# step 2: plot data
+df_comp[45:60].plot(kind='line', figsize=(10, 8))
+plt.xlabel('Age') # add to x-label to the plot
+plt.ylabel('Converted Compensation') # add y-label to the plot
+plt.title('Median Compensation for Ages 45 to 60') # add title to the plot
+plt.show()
+
+#Plot Median ConvertedComp for Ages 25 to 30
+QUERY = """
+SELECT ConvertedComp, Age
+FROM master
+"""
+df_comp = pd.read_sql_query(QUERY,conn) 
+# group respondents by age and apply median() function 
+df_comp = df_comp.groupby('Age', axis=0).median()
+# step 2: plot data
+df_comp[25:30].plot(kind='line', figsize=(10, 8))
+plt.xlabel('Age') # add to x-label to the plot
+plt.ylabel('Converted Compensation') # add y-label to the plot
+plt.title('Median Compensation for Ages 25 to 30') # add title to the plot
+plt.show()
+
+#Create a HBar chart using column MainBranch aka whether respondents are a developer by profession or use code for work
+QUERY = """
+SELECT MainBranch, count(MainBranch) as Count
+FROM master
+GROUP BY MainBranch
+"""
+df_main = pd.read_sql_query(QUERY,conn)
+df_main
+#df_main = df_main.groupby('Age', axis=0).median()
+df_main.plot(kind='barh', x='MainBranch', y='Count', figsize=(10, 6), legend=False)
+plt.xlabel('Number of Respondents') # add to x-label to the plot
+plt.ylabel('Main Branch') # add y-label to the plot
+plt.title('Number of Respondents by Main Branch') # add title to the plot
+plt.show()
+
+#identify the different developer types
+QUERY = """
+SELECT DevType, count(DevType) as Count
+FROM DevType
+GROUP BY DevType
+"""
+df_type = pd.read_sql_query(QUERY,conn) 
+df_type = df_type.sort_values('Count', ascending=False)
+df_type.head()
+
+
+
+
+
+
+
